@@ -1,24 +1,25 @@
 FROM google/cloud-sdk:latest
 
 # Add needed APT repositories
-RUN apt-get install -y apt-transport-https
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
-RUN echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 1655A0AB68576280  
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv C2518248EEA14886  
-RUN echo "deb https://deb.nodesource.com/node_8.x jessie main" | tee -a /etc/apt/sources.list.d/node.list
+RUN apt-get update && apt-get install -y apt-transport-https curl gnupg wget
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
+RUN curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | tee /etc/apt/trusted.gpg.d/sbt.asc
+# Java 8 from Adoptium
+RUN wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null
+RUN echo "deb https://packages.adoptium.net/artifactory/deb bookworm main" | tee /etc/apt/sources.list.d/adoptium.list
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update -y
 
 # Install Java 8 & SBT
-RUN apt-get install -y openjdk-8-jdk sbt
+RUN apt-get install -y temurin-8-jdk sbt
 
 # Install NPM & Typescript
 # The last "Done" is necessary, otherwise container building halts
 # Force yes is to accept unauthenticated nodejs package
-RUN apt-get install -y --force-yes nodejs build-essential npm && echo "Done"
+RUN apt-get install -y --force-yes nodejs build-essential && echo "Done"
 RUN npm install -g typescript
-RUN npm install --save-dev @types/jquery
+RUN npm install -g @types/jquery
 
 # Update GCloud
 # Instructions from https://cloud.google.com/sdk/docs/downloads-apt-get
@@ -30,4 +31,4 @@ RUN apt-get --only-upgrade -y install kubectl google-cloud-sdk google-cloud-sdk-
 # RUN gcloud components update
 RUN gcloud components list
 
-CMD java -version
+CMD ["java", "-version"]
