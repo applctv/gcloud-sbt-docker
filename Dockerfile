@@ -14,6 +14,13 @@ RUN apt-get update -y
 # Install Java 8 & SBT
 RUN apt-get install -y temurin-8-jdk sbt
 
+# Set Java 8 as default
+ENV JAVA_HOME=/usr/lib/jvm/temurin-8-jdk-amd64
+RUN update-alternatives --set java $JAVA_HOME/bin/java && \
+    update-alternatives --set javac $JAVA_HOME/bin/javac
+
+ENV PATH=$JAVA_HOME/bin:$PATH
+
 # Install NPM & Typescript
 # The last "Done" is necessary, otherwise container building halts
 # Force yes is to accept unauthenticated nodejs package
